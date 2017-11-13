@@ -6,3 +6,8 @@ data
 .idea
 .vscode
 .cache
+
+*.egg-info
+dist
+build
+
