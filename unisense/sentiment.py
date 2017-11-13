@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict
 
+import six
 from sklearn.externals import joblib
 
 from .exception import ModelNotExist, VocabFormatError
@@ -10,7 +11,8 @@ from .util import load_pickle, save_pickle
 
 
 # base sentiment class
-class BaseSentiment(metaclass=ABCMeta):
+@six.add_metaclass(ABCMeta)
+class BaseSentiment:
 
     def __init__(self, *args, **kwargs):
         self._has_model = False
