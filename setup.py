@@ -7,7 +7,7 @@ REQUIREMENTS = ['scikit-learn>=0.19.1',
 
 setup(
     name='unisense',
-    version='0.0.2',
+    version='0.0.3',
     description='Sentiment analysis',
     url='https://github.com/silverguo/unisense',
     author='Yuhan',

@@ -29,6 +29,18 @@ test.analysis(['Hello world!'])
 ```
 for each document, the score is ***tuple of neg and pos*** probability
 
+## example
+### rule based sentiment model for english
+```python
+from unisense.en import EnRuleSentiment
+model = EnRuleSentiment()
+vocab = {'hello': -1, 'word': -1, 
+         'hello world': -1, 'world hello': -1}
+model.train(vocab)
+model.create_matcher()
+model.kw_match(['hello World word'])
+```
+
 ## exception
 - model not exist
 - vocab format error
