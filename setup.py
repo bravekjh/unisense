@@ -1,8 +1,8 @@
 from setuptools import setup
 
-REQUIREMENTS = ['scikit-learn>=0.18.1',
+REQUIREMENTS = ['scikit-learn>=0.19.1',
                 'pip>=9.0.0, <10.0.0',
-                'spacy>=1.9.0, <2.0.0']
+                'spacy>=2.0.0, <3.0.0']
 
 setup(
     name='unisense',

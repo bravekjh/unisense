@@ -1,7 +1,7 @@
 import spacy
 
 # spacy for english
-spacy_en = spacy.load('en_depent_web_md')
+spacy_en = spacy.load('en_core_web_sm')
 
 
 
