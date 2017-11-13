@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+from spacy.matcher import Matcher
+
 from unisense.sentiment import RuleSentiment, LogRegSentiment
 from unisense.exception import InputFormatError
 from unisense.util import lstr_lower
@@ -10,66 +12,44 @@ from unisense.ext_lib import spacy_en
 # english rule based sentiment class
 class EnRuleSentiment(RuleSentiment):
 
-    # text preprocess
-    @staticmethod
-    def text_preprocess(docs):
-        # tokenize by spacy
-        docs_tok = []
-        for t in docs:
-            docs_tok.append([str(tok) for tok in spacy_en.tokenizer(t)])
+    # load vocab and create matcher
+    def load_model(self, vocab_path):
+        super(EnRuleSentiment, self).load_model(vocab_path)
 
-        return docs_tok
-
-    # lookup in vocab
-    @staticmethod
-    def vocab_lookup(word_attrib):
-        # to do
-        return word_attrib
-
-    # weighted average for score
-    @staticmethod
-    def weight_mean(chunk_score):
-        # to do
-        return chunk_score
+        # create matcher
+        self.create_matcher()
+    
+    # create matcher
+    def create_matcher(self):
+        self.matcher = Matcher(spacy_en.vocab)
+        for k, v in self.sentiment_vocab.items():
+            if v < 0:
+                pat = [{'LOWER': w.lower()} for w in k.strip().split()]
+                self.matcher.add('neg', None, pat)
 
     # match by model
-    def match_vocab(self, docs_tok, ngram):
-
-        docs_marked = []
-
-        for t in docs_tok:
-            doc_marked = ''
-            idx = 0
-
-            while idx < len(t):
-
-                # wait for refactor with ngram condition
-
-                # tri
-                if self.sentiment_vocab.get(lstr_lower(t[idx:idx + 3]), 0) < 0:
-                    doc_marked += "<mark data-entity=\"neg\">"
-                    doc_marked += ' '.join(t[idx:idx + 3]) + "</mark>" + ' '
-                    idx += 3
-
-                # bi
-                elif self.sentiment_vocab.get(lstr_lower(t[idx:idx + 2]), 0) < 0:
-                    doc_marked += "<mark data-entity=\"neg\">"
-                    doc_marked += ' '.join(t[idx:idx + 2]) + "</mark>" + ' '
-                    idx += 2
-
-                # uni
-                elif self.sentiment_vocab.get(lstr_lower(t[idx:idx + 1]), 0) < 0:
-                    doc_marked += "<mark data-entity=\"neg\">"
-                    doc_marked += ' '.join(t[idx:idx + 1]) + "</mark>" + ' '
-                    idx += 1
-
+    def match_vocab(self, docs):
+        res_docs = []
+        for t in docs:
+            doc = spacy_en(t)
+            mat = self.matcher(doc)
+            mat_merge = []
+            for m in mat:
+                if len(mat_merge) > 0 and mat_merge[-1][1] == m[1]:
+                    mat_merge[-1] = m
+                elif len(mat_merge) > 0 and mat_merge[-1][2] == m[2]:
+                    continue
+                elif len(mat_merge) > 0 and mat_merge[-1][2] > m[1]:
+                    mat_merge[-1] = (m[0], mat_merge[-1][1], m[2])
                 else:
-                    doc_marked += ' '.join(t[idx:idx + 1]) + ' '
-                    idx += 1
-
-            docs_marked.append(doc_marked.replace('\r\n', '\n').replace('\n', '<br>'))
-
-        return docs_marked
+                    mat_merge.append(m)
+            res = []
+            for m in mat_merge:
+                res.append({'word': doc[m[1]:m[2]].text, 
+                            'start': doc[m[1]:m[2]].start_char, 
+                            'end': doc[m[1]:m[2]].end_char})
+            res_docs.append(res)
+        return res_docs
 
     # sentiment analysis
     def analysis(self, docs):
@@ -81,15 +61,9 @@ class EnRuleSentiment(RuleSentiment):
         except InputFormatError as e:
             print('Exception', e)
             raise
-
-        # preprocess for text
-        docs_tok = self.text_preprocess(docs)
-
-        # vocab lookup
-        chunk_score = self.vocab_lookup(docs_tok)
-
-        # weighted
-        return self.weight_mean(chunk_score)
+        
+        # to be done
+        return 0
 
     # key word match
     def kw_match(self, docs, ngram=3):
@@ -102,11 +76,8 @@ class EnRuleSentiment(RuleSentiment):
             print('Exception', e)
             raise
 
-        # preprocess for text
-        docs_tok = self.text_preprocess(docs)
-
-        # match key word
-        return self.match_vocab(docs_tok, ngram)
+        # match vocab
+        return self.match_vocab(docs)
 
 
 # english logistic regression sentiment class
