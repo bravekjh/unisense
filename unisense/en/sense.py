@@ -18,6 +18,13 @@ class EnRuleSentiment(RuleSentiment):
 
         # create matcher
         self.create_matcher()
+
+    # train model with new vocab
+    def train(self, update_vocab):
+        super(EnRuleSentiment, self).train(update_vocab)
+
+        # create matcher
+        self.create_matcher()
     
     # create matcher
     def create_matcher(self):
@@ -62,8 +69,13 @@ class EnRuleSentiment(RuleSentiment):
             print('Exception', e)
             raise
         
-        # to be done
-        return 0
+        score = []
+        # match count mode
+        for t in docs:
+            doc = spacy_en(t)
+            mat = self.matcher(doc)
+            score.append(len(mat))
+        return score
 
     # key word match
     def kw_match(self, docs, ngram=3):
