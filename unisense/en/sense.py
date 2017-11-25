@@ -31,7 +31,7 @@ class EnRuleSentiment(RuleSentiment):
         self.matcher = Matcher(spacy_en.vocab)
         for k, v in self.sentiment_vocab.items():
             if v < 0:
-                pat = [{'LOWER': w.lower()} for w in k.strip().split()]
+                pat = [{'LEMMA': w.lower()} for w in k.strip().split()]
                 self.matcher.add('neg', None, pat)
 
     # match by model
